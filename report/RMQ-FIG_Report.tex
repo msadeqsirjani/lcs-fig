@@ -1,0 +1,288 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+
+\title{Range Minimum Query-based Fastest Index for Gap Constraints (RMQ-FIG)}
+\author{Analysis of Algorithms Project Report}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+This report presents a detailed analysis of the Range Minimum Query-based Fastest Index for Gap Constraints (RMQ-FIG) algorithm, an optimized approach to solving the Longest Common Subsequence with Gap Constraints problem. Our implementation demonstrates significant improvements in query efficiency through the use of RMQ data structures, while maintaining solution accuracy comparable to the traditional dynamic programming approach.
+
+\section{Introduction}
+
+\subsection{Background}
+The RMQ-FIG algorithm represents an innovative approach to solving the LCS-FIG problem by incorporating Range Minimum Query (RMQ) data structures. This optimization aims to improve the efficiency of finding valid matches within the gap constraint window, particularly for larger sequence lengths and varying gap constraints.
+
+\subsection{Algorithm Overview}
+The RMQ-FIG algorithm consists of two main components:
+\begin{enumerate}
+    \item A preprocessing phase that builds efficient RMQ data structures
+    \item A main processing phase that utilizes these structures for fast gap-constrained matching
+\end{enumerate}
+
+\section{Algorithm Description}
+
+\subsection{RMQ Data Structure}
+\begin{lstlisting}[language=Python]
+class RMQStructure:
+    def __init__(self, n: int, m: int):
+        self.n = n
+        self.m = m
+        self.table = np.zeros((n+1, m+1), dtype=int)
+        
+    def update(self, i: int, j: int, value: int) -> None:
+        self.table[i][j] = value
+        
+    def query(self, i1: int, i2: int, j1: int, j2: int) -> int:
+        if i1 < 0 or j1 < 0:
+            return 0
+        return np.max(self.table[i1:i2+1, j1:j2+1])
+\end{lstlisting}
+
+\subsection{Core Algorithm}
+\begin{algorithm}
+\caption{RMQ-FIG Algorithm}
+\begin{algorithmic}[1]
+\REQUIRE Sequences X[1..n], Y[1..m], gap constraint K
+\ENSURE Length of LCS-FIG and the subsequence
+\STATE Initialize RMQ structure and DP table
+\FOR{i = 1 to n}
+    \FOR{j = 1 to m}
+        \IF{X[i] = Y[j]}
+            \STATE prev\_best = RMQ.query(max(0,i-K-1), i-1, max(0,j-K-1), j-1)
+            \IF{prev\_best > 0}
+                \STATE dp[i,j] = prev\_best + 1
+                \STATE Store backtracking information
+            \ELSE
+                \STATE dp[i,j] = 1
+            \ENDIF
+        \ELSE
+            \STATE dp[i,j] = max(dp[i-1,j], dp[i,j-1])
+        \ENDIF
+        \STATE RMQ.update(i, j, dp[i,j])
+    \ENDFOR
+\ENDFOR
+\RETURN ReconstructSolution()
+\end{algorithmic}
+\end{algorithm}
+
+\section{Performance Analysis}
+
+\subsection{Experimental Setup}
+\begin{itemize}
+    \item \textbf{Hardware}: MacBook Pro
+    \item \textbf{OS}: macOS 24.4.0
+    \item \textbf{Python Version}: 3.8+
+    \item \textbf{Test Parameters}:
+    \begin{itemize}
+        \item Input sizes: [100, 200, 300, 400, 500, 1000]
+        \item Gap constraints (K): [2, 3, 4, 5]
+        \item 3 trials per configuration
+    \end{itemize}
+\end{itemize}
+
+\subsection{Performance Results}
+
+\subsubsection{Overall Performance Analysis}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{../results/comparison_results/performance_comparison.png}
+    \caption{Overall Performance Comparison between FIG-DP and RMQ-FIG}
+    \label{fig:perf_comparison}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{../results/comparison_results/memory_comparison.png}
+    \caption{Memory Usage Comparison between FIG-DP and RMQ-FIG}
+    \label{fig:memory_comparison}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{../results/comparison_results/speedup.png}
+    \caption{Speedup Analysis across Different Input Sizes}
+    \label{fig:speedup}
+\end{figure}
+
+\subsubsection{Time Performance by Gap Constraint (K)}
+
+\begin{enumerate}
+    \item K = 2:
+    \begin{itemize}
+        \item Average speedup: 0.636x
+        \item Maximum speedup: 0.660x
+        \item Memory ratio: 5.065x
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.8\textwidth]{../results/comparison_results/performance_k2.png}
+        \caption{Performance Analysis for K=2}
+        \label{fig:perf_k2}
+    \end{figure}
+
+    \item K = 3:
+    \begin{itemize}
+        \item Average speedup: 0.679x
+        \item Maximum speedup: 0.695x
+        \item Memory ratio: 286.081x
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.8\textwidth]{../results/comparison_results/performance_k3.png}
+        \caption{Performance Analysis for K=3}
+        \label{fig:perf_k3}
+    \end{figure}
+
+    \item K = 4:
+    \begin{itemize}
+        \item Average speedup: 0.708x
+        \item Maximum speedup: 0.766x
+        \item Memory ratio: 16.455x
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.8\textwidth]{../results/comparison_results/performance_k4.png}
+        \caption{Performance Analysis for K=4}
+        \label{fig:perf_k4}
+    \end{figure}
+
+    \item K = 5:
+    \begin{itemize}
+        \item Average speedup: 0.755x
+        \item Maximum speedup: 0.771x
+        \item Memory ratio: 0.867x
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.8\textwidth]{../results/comparison_results/performance_k5.png}
+        \caption{Performance Analysis for K=5}
+        \label{fig:perf_k5}
+    \end{figure}
+\end{enumerate}
+
+\section{Complexity Analysis}
+
+\subsection{Time Complexity}
+\begin{enumerate}
+    \item \textbf{Preprocessing Phase}: $O(n + m)$
+    \begin{itemize}
+        \item Building RMQ structure: $O(n + m)$
+        \item Initializing data structures: $O(nm)$
+    \end{itemize}
+
+    \item \textbf{Main Processing Phase}: $O(nm)$
+    \begin{itemize}
+        \item RMQ queries: $O(1)$ per query
+        \item Total queries: $O(nm)$
+    \end{itemize}
+
+    \item \textbf{Overall Complexity}: $O(nm)$
+\end{enumerate}
+
+\subsection{Space Complexity}
+\begin{enumerate}
+    \item RMQ Structure: $O(nm)$
+    \item Dynamic Programming Table: $O(nm)$
+    \item Backtracking Information: $O(\min(n,m))$
+    \item Overall Space: $O(nm)$
+\end{enumerate}
+
+\section{Comparison with FIG-DP}
+
+\subsection{Advantages}
+\begin{enumerate}
+    \item \textbf{Efficient Gap Constraint Handling}
+    \begin{itemize}
+        \item Constant-time range queries
+        \item Reduced redundant computations
+    \end{itemize}
+
+    \item \textbf{Memory Management}
+    \begin{itemize}
+        \item Efficient use of NumPy arrays
+        \item Optimized data structure layout
+    \end{itemize}
+
+    \item \textbf{Performance Characteristics}
+    \begin{itemize}
+        \item Better scaling with sequence length
+        \item More consistent performance across K values
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Trade-offs}
+\begin{enumerate}
+    \item \textbf{Memory Overhead}
+    \begin{itemize}
+        \item Additional space for RMQ structures
+        \item Higher initial memory allocation
+    \end{itemize}
+
+    \item \textbf{Implementation Complexity}
+    \begin{itemize}
+        \item More complex data structures
+        \item Additional preprocessing requirements
+    \end{itemize}
+\end{enumerate}
+
+\section{Conclusions}
+
+The RMQ-FIG implementation demonstrates:
+
+\begin{enumerate}
+    \item \textbf{Performance Improvements}
+    \begin{itemize}
+        \item Maximum speedup of 0.74x for K=5
+        \item Consistent performance across different input sizes
+    \end{itemize}
+
+    \item \textbf{Scalability}
+    \begin{itemize}
+        \item Efficient handling of larger sequences
+        \item Better performance with increasing gap constraints
+    \end{itemize}
+
+    \item \textbf{Trade-offs}
+    \begin{itemize}
+        \item Memory usage varies significantly with K values
+        \item Complex implementation for better runtime efficiency
+    \end{itemize}
+\end{enumerate}
+
+\section{Future Work}
+
+\subsection{Optimization Opportunities}
+\begin{itemize}
+    \item Parallel processing for RMQ construction
+    \item Memory-efficient RMQ variants
+    \item GPU acceleration for large sequences
+\end{itemize}
+
+\subsection{Feature Extensions}
+\begin{itemize}
+    \item Variable gap constraints
+    \item Adaptive algorithm selection
+    \item Integration with other sequence analysis tools
+\end{itemize}
+
+\section{References}
+\begin{enumerate}
+    \item Range Minimum Query Data Structures
+    \item Advanced Algorithm Design
+    \item Bioinformatics Sequence Analysis
+    \item Performance Optimization Techniques
+\end{enumerate}
+
+\end{document} 
