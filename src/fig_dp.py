@@ -1,102 +1,115 @@
+#!/usr/bin/env python3
+
+import time
+import psutil
 import numpy as np
 from typing import List, Tuple
-import time
+import json
+import os
 
 class FIGDP:
-    def __init__(self, seq1: str, seq2: str, k: int):
-        """
-        Initialize the LCS-FIG algorithm with two sequences and gap parameter.
-        
-        Args:
-            seq1: First sequence
-            seq2: Second sequence
-            k: Gap constraint parameter
-        """
-        self.seq1 = seq1
-        self.seq2 = seq2
-        self.n = len(seq1)
-        self.m = len(seq2)
-        self.k = k
-        self.dp_table = None
-        self.parent = None
-        
-    def solve(self) -> Tuple[int, str, float]:
-        """
-        Solve the LCS-FIG problem using dynamic programming.
-        
-        Returns:
-            Tuple containing:
-            - Length of the longest common subsequence with gap constraints
-            - The actual matching sequence
-            - Time taken to solve the problem
-        """
-        start_time = time.time()
-        
-        # Initialize DP table and parent pointers
-        self.dp_table = np.zeros((self.n + 1, self.m + 1), dtype=np.int32)
-        self.parent = np.zeros((self.n + 1, self.m + 1), dtype=np.int32)
-        
-        # Fill the DP table
-        for i in range(1, self.n + 1):
-            for j in range(1, self.m + 1):
-                if self.seq1[i-1] == self.seq2[j-1]:
-                    if i > self.k + 1 and j > self.k + 1:
-                        self.dp_table[i][j] = self.dp_table[i - self.k - 1][j - self.k - 1] + 1
-                        self.parent[i][j] = 1  # diagonal with gap
-                    else:
-                        self.dp_table[i][j] = 1
-                        self.parent[i][j] = 2  # start of new sequence
-                else:
-                    if self.dp_table[i-1][j] >= self.dp_table[i][j-1]:
-                        self.dp_table[i][j] = self.dp_table[i-1][j]
-                        self.parent[i][j] = 3  # up
-                    else:
-                        self.dp_table[i][j] = self.dp_table[i][j-1]
-                        self.parent[i][j] = 4  # left
-        
-        # Find the maximum value and its position
-        max_length = np.max(self.dp_table)
-        max_pos = np.unravel_index(np.argmax(self.dp_table), self.dp_table.shape)
-        
-        # Reconstruct the matching sequence
-        matching_seq = self._reconstruct_sequence(max_pos[0], max_pos[1])
-        
-        end_time = time.time()
-        execution_time = end_time - start_time
-        
-        return max_length, matching_seq, execution_time
+    """Implementation of the basic FIG-DP algorithm."""
+    def __init__(self):
+        self.performance_data = {
+            'time': [],
+            'memory': [],
+            'size': [],
+            'k': [],
+            'lcs_length': []
+        }
     
-    def _reconstruct_sequence(self, i: int, j: int) -> str:
+    def get_memory_usage(self) -> float:
+        """Get current memory usage in MB."""
+        process = psutil.Process(os.getpid())
+        return process.memory_info().rss / 1024 / 1024
+    
+    def solve(self, X: str, Y: str, K: int) -> Tuple[int, List[str]]:
         """
-        Reconstruct the matching sequence using parent pointers.
+        Solve LCS-FIG using basic dynamic programming approach.
         
         Args:
-            i: Current position in first sequence
-            j: Current position in second sequence
+            X: First sequence
+            Y: Second sequence
+            K: Gap constraint
             
         Returns:
-            The matching sequence
+            Tuple of (length of LCS-FIG, the actual subsequence)
         """
-        sequence = []
-        while i > 0 and j > 0:
-            if self.parent[i][j] == 1:  # diagonal with gap
-                sequence.append(self.seq1[i-1])
-                i -= self.k + 1
-                j -= self.k + 1
-            elif self.parent[i][j] == 2:  # start of new sequence
-                sequence.append(self.seq1[i-1])
-                break
-            elif self.parent[i][j] == 3:  # up
-                i -= 1
-            else:  # left
-                j -= 1
-        return ''.join(reversed(sequence))
-    
-    def get_dp_table(self) -> np.ndarray:
-        """
-        Get the DP table for visualization or analysis.
+        start_time = time.time()
+        initial_memory = self.get_memory_usage()
         
-        Returns:
-            The filled DP table
-        """
-        return self.dp_table 
+        n, m = len(X), len(Y)
+        dp = np.zeros((n+1, m+1), dtype=int)
+        prev = {}  # Store previous positions for backtracking
+        
+        # Main algorithm
+        for i in range(1, n+1):
+            for j in range(1, m+1):
+                if X[i-1] == Y[j-1]:
+                    # Check previous positions within gap constraint
+                    max_prev = 0
+                    max_pos = None
+                    for pi in range(max(0, i-K-1), i):
+                        for pj in range(max(0, j-K-1), j):
+                            if dp[pi][pj] > max_prev:
+                                max_prev = dp[pi][pj]
+                                max_pos = (pi, pj)
+                    
+                    if max_prev > 0:
+                        dp[i][j] = max_prev + 1
+                        prev[(i,j)] = max_pos
+                    else:
+                        dp[i][j] = 1
+                else:
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+        
+        # Record performance data
+        end_time = time.time()
+        final_memory = self.get_memory_usage()
+        
+        self.performance_data['time'].append(end_time - start_time)
+        self.performance_data['memory'].append(final_memory - initial_memory)
+        self.performance_data['size'].append(max(n, m))
+        self.performance_data['k'].append(K)
+        self.performance_data['lcs_length'].append(int(dp[n][m]))
+        
+        # Backtrack to get the subsequence
+        lcs = []
+        i, j = n, m
+        max_length = dp[n][m]
+        while i > 0 and j > 0:
+            if (i,j) in prev:
+                lcs.append(X[i-1])
+                i, j = prev[(i,j)]
+            elif dp[i][j] == dp[i-1][j]:
+                i -= 1
+            else:
+                j -= 1
+        
+        return max_length, lcs[::-1]
+    
+    def save_performance_data(self, filename: str) -> None:
+        """Save performance data to a JSON file."""
+        with open(filename, 'w') as f:
+            json.dump(self.performance_data, f, indent=4)
+    
+    def get_average_performance(self) -> dict:
+        """Get average performance metrics."""
+        return {
+            'avg_time': np.mean(self.performance_data['time']),
+            'avg_memory': np.mean(self.performance_data['memory']),
+            'avg_length': np.mean(self.performance_data['lcs_length'])
+        }
+
+if __name__ == "__main__":
+    # Example usage
+    X = "ABCDEFG"
+    Y = "ACDEFGH"
+    K = 2
+    
+    fig_dp = FIGDP()
+    length, subsequence = fig_dp.solve(X, Y, K)
+    
+    print(f"Length of LCS-FIG: {length}")
+    print(f"Subsequence: {''.join(subsequence)}")
+    print(f"Performance: {fig_dp.get_average_performance()}") 

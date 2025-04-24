@@ -95,3 +95,7 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 *.lnk 
+
+results/
+comparison_results/
+logs/

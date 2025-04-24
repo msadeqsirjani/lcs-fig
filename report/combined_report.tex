@@ -1,0 +1,249 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{appendix}
+
+% Define colors for syntax highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Python code style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\title{Comparative Analysis of LCS-FIG Algorithms:\\FIG-DP, RMQ-FIG, and Greedy Approaches}
+\author{Mohammad Sadegh Sirjani | ZXL708}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+% \tableofcontents
+\newpage
+
+\begin{abstract}
+This report presents a comprehensive comparison of three algorithms for solving the Longest Common Subsequence with Fixed-length Indel Gaps (LCS-FIG) problem: the dynamic programming approach (FIG-DP), the Range Minimum Query optimization (RMQ-FIG), and a novel greedy approach. We analyze their performance characteristics, solution quality, and practical applicability across various input sizes and gap constraints.
+\end{abstract}
+
+\section{Introduction}
+The LCS-FIG problem extends the classical LCS problem by allowing fixed-length indel gaps. This extension has practical applications in computational biology, particularly in DNA sequence alignment. Our analysis compares three distinct approaches:
+\begin{itemize}
+    \item \textbf{FIG-DP}: A dynamic programming solution guaranteeing optimal results
+    \item \textbf{RMQ-FIG}: An optimization using Range Minimum Queries
+    \item \textbf{Greedy LCS-FIG}: A heuristic approach prioritizing speed over optimality
+\end{itemize}
+
+\section{Performance Analysis}
+\subsection{Experimental Setup}
+Our experimental evaluation used:
+\begin{itemize}
+    \item Sequence lengths: [100, 500, 1000, 2000, 5000]
+    \item Gap constraints (K): [2, 5, 10, 20, 40]
+    \item Random DNA sequences (A, C, G, T)
+    \item Multiple trials per configuration
+\end{itemize}
+
+\subsection{Time Complexity Analysis}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{./images/final-report/performance_comparison.png}
+    \caption{Performance Comparison of All LCS-FIG Algorithms}
+    \label{fig:performance_comparison}
+\end{figure}
+
+As shown in Figure \ref{fig:performance_comparison}, we observe significant performance differences:
+\begin{itemize}
+    \item \textbf{FIG-DP}: Shows O(n²K) time complexity, with execution time ranging from 0.011s (n=100, K=2) to 393.57s (n=5000, K=40)
+    \item \textbf{RMQ-FIG}: Demonstrates O(n²) complexity, with times from 0.018s (n=100, K=2) to 454.95s (n=5000, K=10)
+    \item \textbf{Greedy}: Exhibits near-linear O(nK) growth, with execution times from 7.3×10⁻⁶s (n=100, K=40) to 1.65×10⁻³s (n=5000, K=2)
+\end{itemize}
+
+The greedy algorithm outperforms the other approaches by several orders of magnitude, especially as sequence length and gap size increase.
+
+\subsection{Relative Performance Analysis}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/final-report/relative_performance_figdp_vs_greedy.png}
+    \caption{Relative Performance: FIG-DP vs Greedy}
+    \label{fig:figdp_vs_greedy}
+\end{figure}
+
+Figure \ref{fig:figdp_vs_greedy} demonstrates the dramatic performance difference between FIG-DP and Greedy approaches:
+\begin{itemize}
+    \item For K=2, FIG-DP is 431-15,021× slower than Greedy
+    \item For K=40, this ratio increases to 12,813-830,210×
+    \item Performance gap widens with both sequence length and gap size
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/final-report/relative_performance_figdp_vs_rmq.png}
+    \caption{Relative Performance: FIG-DP vs RMQ-FIG}
+    \label{fig:figdp_vs_rmq}
+\end{figure}
+
+The performance comparison between FIG-DP and RMQ-FIG (Figure \ref{fig:figdp_vs_rmq}) shows:
+\begin{itemize}
+    \item For K≤10, RMQ-FIG is typically slower than FIG-DP (ratio < 1.0)
+    \item For K≥20, FIG-DP is consistently slower than RMQ-FIG (ratio > 1.0)
+    \item For K=40, FIG-DP is 10-16\% slower than RMQ-FIG across all input sizes
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/final-report/relative_performance_rmq_vs_greedy.png}
+    \caption{Relative Performance: RMQ-FIG vs Greedy}
+    \label{fig:rmq_vs_greedy}
+\end{figure}
+
+The RMQ-FIG vs Greedy comparison (Figure \ref{fig:rmq_vs_greedy}) reveals:
+\begin{itemize}
+    \item For K=2, RMQ-FIG is 693-23,663× slower than Greedy
+    \item For K=40, this difference increases to 11,602-714,908×
+    \item For large inputs with K=10, RMQ-FIG can be 375,158× slower than Greedy
+\end{itemize}
+
+\subsection{Space Complexity}
+Memory usage varies significantly between algorithms:
+\begin{itemize}
+    \item \textbf{FIG-DP}: Requires 52.9-733.0 MB for sequences up to length 5000
+    \item \textbf{RMQ-FIG}: Uses 53.0-733.7 MB, slightly higher than FIG-DP due to additional data structures
+    \item \textbf{Greedy}: Negligible memory usage, measured at less than 1 MB across all test cases
+\end{itemize}
+
+\subsection{Solution Quality}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/final-report/solution_quality.png}
+    \caption{Greedy Algorithm Solution Quality vs Optimal Solution}
+    \label{fig:solution_quality}
+\end{figure}
+
+Figure \ref{fig:solution_quality} illustrates the quality ratio (Greedy/Optimal) across different K values:
+\begin{itemize}
+    \item For K=2: 18.3-19.7\% of optimal solution length (avg 18.8\%)
+    \item For K=5: 15.8-17.6\% of optimal solution length (avg 16.5\%)
+    \item For K=10: 11.4-12.6\% of optimal solution length (avg 12.1\%)
+    \item For K=20: 8.5-11.5\% of optimal solution length (avg 9.5\%)
+    \item For K=40: 5.4-6.9\% of optimal solution length (avg 6.0\%)
+\end{itemize}
+
+This demonstrates a clear inverse relationship between gap size and solution quality in the greedy approach.
+
+\section{Algorithm Recommendations}
+Based on our comprehensive analysis, we recommend:
+
+\subsection{Use FIG-DP when:}
+\begin{itemize}
+    \item Optimal solutions are required
+    \item Input sequences are short (n ≤ 1000)
+    \item Memory constraints are not critical
+    \item K value is small (≤ 10)
+    \item Applications: Reference implementations, benchmark creation
+\end{itemize}
+
+\subsection{Use RMQ-FIG when:}
+\begin{itemize}
+    \item Optimal solutions are required
+    \item Medium-sized sequences (1000 < n ≤ 5000)
+    \item Balanced time-space trade-off is needed
+    \item K value is large (> 10)
+    \item Applications: Production systems with moderate load
+\end{itemize}
+
+\subsection{Use Greedy LCS-FIG when:}
+\begin{itemize}
+    \item Speed is critical
+    \item Long sequences (n > 5000)
+    \item Approximate solutions are acceptable
+    \item Memory is limited
+    \item K is small (≤ 5), where solution quality remains above 15\%
+    \item Applications: Real-time systems, large-scale processing
+\end{itemize}
+
+\section{Trade-offs and Considerations}
+
+\subsection{Time-Quality Trade-off}
+\begin{itemize}
+    \item FIG-DP: 100\% accuracy, slowest performance (avg 29.5s for n=5000, K=20)
+    \item RMQ-FIG: 100\% accuracy, moderate performance (avg 26.1s for n=5000, K=20)
+    \item Greedy: 5-20\% accuracy depending on K, fastest performance (avg 0.0003s for n=5000, K=20)
+\end{itemize}
+
+\subsection{Memory-Performance Trade-off}
+\begin{itemize}
+    \item FIG-DP: High memory usage (730 MB for n=5000, K=20), predictable performance
+    \item RMQ-FIG: High memory usage (731 MB for n=5000, K=20), better performance for large K
+    \item Greedy: Negligible memory usage, fastest execution
+\end{itemize}
+
+\subsection{Gap Constraint Impact}
+\begin{itemize}
+    \item Small K (≤ 10): FIG-DP outperforms RMQ-FIG, Greedy quality ~12-19\%
+    \item Medium K (11-20): RMQ-FIG begins to outperform FIG-DP, Greedy quality ~9-12\%
+    \item Large K (> 20): RMQ-FIG significantly outperforms FIG-DP, Greedy quality < 9\%
+\end{itemize}
+
+\section{Conclusion}
+The choice of algorithm depends primarily on the specific requirements of the application:
+\begin{enumerate}
+    \item For applications requiring guaranteed optimal solutions and handling smaller sequences, FIG-DP remains the best choice.
+    \item For balanced performance and optimal solutions with medium-sized sequences, RMQ-FIG provides an excellent compromise.
+    \item For large-scale applications where approximate solutions are acceptable, the Greedy approach offers superior performance and minimal memory usage.
+\end{enumerate}
+
+Future work should focus on:
+\begin{itemize}
+    \item Parallel implementations of all three algorithms
+    \item Hybrid approaches combining greedy and dynamic programming
+    \item Optimization for specific sequence characteristics
+\end{itemize}
+
+\newpage
+
+\appendix
+\section{FIG-DP Analysis Report}
+\input{LCS-FIG_Report}
+
+\newpage
+
+\section{RMQ-FIG Analysis Report}
+\input{RMQ-FIG_Report}
+
+\newpage
+
+\section{Greedy LCS-FIG Analysis Report}
+\input{LCS-FIG-Greedy_Report}
+
+\end{document} 

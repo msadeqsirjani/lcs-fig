@@ -1,0 +1,213 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\title{Analysis of Greedy LCS-FIG Algorithm Performance}
+\author{Analysis of Algorithms - Term Project}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report presents a comprehensive analysis of the Greedy Algorithm for Longest Common Subsequence with Fixed-length Indel Gaps (LCS-FIG). We examine its performance characteristics, solution quality, and scalability through extensive experimental evaluation using DNA sequences of varying lengths and different gap constraints. The results demonstrate the algorithm's efficiency in terms of time and space complexity, while highlighting the trade-offs between execution speed and solution quality.
+\end{abstract}
+
+\section{Introduction}
+
+The Longest Common Subsequence problem with Fixed-length Indel Gaps (LCS-FIG) extends the classical LCS problem by introducing constraints on the allowed gaps between matched elements. This variant has particular relevance in bioinformatics and text analysis applications where controlled spacing between matches is essential.
+
+\subsection{Algorithm Overview}
+
+The greedy approach to LCS-FIG provides a fast but non-optimal solution through the following steps:
+
+\begin{enumerate}
+    \item Scan both sequences simultaneously
+    \item When matching characters are found, include them in the solution
+    \item Jump K+1 positions ahead in both sequences after a match
+    \item Move forward one position in the appropriate sequence when characters don't match
+\end{enumerate}
+
+\begin{algorithm}
+\caption{Greedy LCS-FIG Algorithm}
+\begin{algorithmic}[1]
+\Require Sequences X[1..n], Y[1..m], fixed gap K
+\Ensure Length of LCS-FIG
+\State Initialize i $\gets$ 1, j $\gets$ 1, LCS length $\gets$ 0
+\While{i $\leq$ n and j $\leq$ m}
+    \If{X[i] = Y[j]}
+        \State LCS length $\gets$ LCS length + 1
+        \State i $\gets$ i + K + 1
+        \State j $\gets$ j + K + 1
+    \ElsIf{X[i] < Y[j]}
+        \State i $\gets$ i + 1
+    \Else
+        \State j $\gets$ j + 1
+    \EndIf
+\EndWhile
+\State \Return LCS length
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Complexity Analysis:}
+\begin{itemize}
+    \item Time Complexity: $\mathcal{O}(n + m)$
+    \item Space Complexity: $\mathcal{O}(1)$
+\end{itemize}
+
+\section{Experimental Setup}
+
+\subsection{Test Parameters}
+
+\begin{itemize}
+    \item \textbf{Sequence Lengths}: [1000, 2000, 5000, 10000, 20000, 50000, 100000]
+    \item \textbf{Gap Constraints (K)}: [2, 5, 10, 20, 50, 100, 200]
+    \item \textbf{Number of Runs}: 10 runs per configuration
+    \item \textbf{Sequence Type}: Random DNA sequences (A, C, G, T)
+\end{itemize}
+
+\subsection{Evaluation Metrics}
+
+The algorithm's performance was evaluated using the following metrics:
+\begin{enumerate}
+    \item Execution Time (seconds)
+    \item Solution Length (LCS length)
+    \item Processing Speed (characters/second)
+    \item Standard Deviations
+    \item LCS to Input Ratio
+\end{enumerate}
+
+\section{Results and Analysis}
+
+\subsection{Time Performance}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../results/lcs_fig_greedy/time_performance.png}
+    \caption{Time Performance Analysis}
+    \label{fig:time_performance}
+\end{figure}
+
+The time performance analysis (Figure \ref{fig:time_performance}) reveals several key characteristics:
+\begin{itemize}
+    \item Linear growth in execution time with sequence length (log-log scale)
+    \item Larger gap values (K) generally result in faster execution
+    \item Consistent performance across multiple runs (small error bars)
+\end{itemize}
+
+\subsection{Solution Quality}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../results/lcs_fig_greedy/length_performance.png}
+    \caption{Solution Length Analysis}
+    \label{fig:length_performance}
+\end{figure}
+
+The solution quality analysis (Figure \ref{fig:length_performance}) shows:
+\begin{itemize}
+    \item Sub-linear growth in LCS length with input size
+    \item Inverse relationship between gap size and solution length
+    \item Clear trade-off between execution speed and solution quality
+\end{itemize}
+
+\subsection{Processing Efficiency}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../results/lcs_fig_greedy/processing_speed.png}
+    \caption{Processing Speed Analysis}
+    \label{fig:processing_speed}
+\end{figure}
+
+The processing efficiency analysis (Figure \ref{fig:processing_speed}) indicates:
+\begin{itemize}
+    \item Relatively stable processing rates across sequence lengths
+    \item Higher gap values achieve better throughput
+    \item Slight performance degradation with very large sequences
+\end{itemize}
+
+\section{Key Findings}
+
+\subsection{Scalability}
+The algorithm demonstrates excellent scalability characteristics:
+\begin{itemize}
+    \item Successfully processes sequences up to 100,000 characters
+    \item Empirical results confirm theoretical linear time complexity
+    \item Constant memory usage regardless of input size
+\end{itemize}
+
+\subsection{Gap Constraint Impact}
+The gap parameter K significantly influences algorithm behavior:
+\begin{itemize}
+    \item Larger K values improve processing speed
+    \item Smaller K values produce longer (potentially better) solutions
+    \item Optimal K value depends on specific application requirements
+\end{itemize}
+
+\section{Trade-offs and Recommendations}
+
+\subsection{Performance Trade-offs}
+
+\begin{enumerate}
+    \item \textbf{Speed vs. Quality}
+    \begin{itemize}
+        \item Larger gap values increase speed but decrease solution quality
+        \item Smaller gap values provide better solutions but slower execution
+    \end{itemize}
+    
+    \item \textbf{Memory vs. Optimality}
+    \begin{itemize}
+        \item Constant memory usage achieved by sacrificing solution optimality
+        \item No backtracking or dynamic programming tables needed
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Usage Recommendations}
+
+\begin{enumerate}
+    \item \textbf{Speed-Critical Applications}
+    \begin{itemize}
+        \item Use larger gap values (K $\geq$ 50)
+        \item Suitable for real-time processing of long sequences
+    \end{itemize}
+    
+    \item \textbf{Quality-Critical Applications}
+    \begin{itemize}
+        \item Use smaller gap values (K $\leq$ 20)
+        \item Consider alternative algorithms if optimality is crucial
+    \end{itemize}
+    
+    \item \textbf{Balanced Performance}
+    \begin{itemize}
+        \item Use moderate gap values (20 $\leq$ K $\leq$ 50)
+        \item Provides good trade-off between speed and solution quality
+    \end{itemize}
+\end{enumerate}
+
+\section{Conclusion}
+
+The Greedy LCS-FIG algorithm proves to be an efficient solution for processing large sequences with fixed-gap constraints. Its linear time complexity and constant space usage make it particularly suitable for applications where speed and memory efficiency are prioritized over solution optimality.
+
+The experimental results demonstrate that the algorithm can effectively process sequences of 100,000+ characters while maintaining consistent performance characteristics. The gap constraint parameter provides a flexible means of tuning the algorithm's behavior to meet specific application requirements.
+
+\section{Future Work}
+
+Several directions for future research include:
+\begin{enumerate}
+    \item Comprehensive comparison with other LCS-FIG algorithms
+    \item Analysis on different types of sequence data
+    \item Investigation of parallel processing opportunities
+    \item Development of adaptive gap constraint strategies
+\end{enumerate}
+
+\end{document} 
